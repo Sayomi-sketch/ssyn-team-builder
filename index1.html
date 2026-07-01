@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSYN Battleground Team Builder</title>
+<style>
+/* ── RESET ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0d; color: #e0e0e0; font-size: 14px; min-height: 100vh; }
+
+/* ── COLOUR TOKENS ── */
+:root {
+  --bg:        #0d0d0d;
+  --surface:   #161616;
+  --surface2:  #1f1f1f;
+  --border:    #2a2a2a;
+  --border2:   #333;
+  --silver:    #c0c0c0;
+  --silver2:   #888;
+  --silver3:   #555;
+  --white:     #f0f0f0;
+  --accent:    #c0c0c0;
+  --accent-dim:#444;
+  --green:     #22c55e;
+  --green-dim: #14532d;
+  --red:       #ef4444;
+  --red-dim:   #7f1d1d;
+  --amber:     #f59e0b;
+  --amber-dim: #78350f;
+  --blue:      #60a5fa;
+  --blue-dim:  #1e3a8a;
+  --purple:    #a78bfa;
+  --purple-dim:#4c1d95;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: #000;
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.app-header h1 { font-size: 22px; font-weight: 700; color: var(--white); letter-spacing: 0.5px; }
+.app-header .sub { font-size: 11px; color: var(--silver3); margin-top: 3px; }
+.header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.credit { font-size: 10px; color: var(--silver3); font-style: italic; }
+.btn-export { background: #1a1a1a; color: var(--silver); border: 1px solid var(--border2); padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-export:hover { background: var(--border2); color: var(--white); }
+.btn-import-lbl { background: #1a1a1a; color: var(--silver); border: 1px solid var(--border2); padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-block; text-transform: none; font-family: inherit; }
+.btn-import-lbl:hover { background: var(--border2); color: var(--white); }
+#importFile { display: none; }
+
+/* ── MODE BAR ── */
+.mode-bar {
+  background: #111; border-bottom: 1px solid var(--border);
+  padding: 10px 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.mode-label { font-size: 11px; font-weight: 700; color: var(--silver3); text-transform: uppercase; letter-spacing: 1px; }
+.mode-toggle { display: flex; border: 1px solid var(--border2); border-radius: 6px; overflow: hidden; }
+.mode-btn { padding: 7px 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--silver2); transition: all 0.15s; }
+.mode-btn:hover { color: var(--white); }
+.mode-btn.on-cs { background: var(--surface2); color: var(--white); border-right: 1px solid var(--border2); }
+.mode-btn.on-ds { background: var(--surface2); color: var(--white); border-left: 1px solid var(--border2); }
+.mode-pill { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border2); color: var(--silver2); background: var(--surface2); }
+
+/* ── TABS ── */
+.tabs { display: flex; padding: 0 24px; border-bottom: 1px solid var(--border); background: #111; gap: 2px; }
+.tab { padding: 11px 18px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--silver3); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.tab:hover { color: var(--silver); }
+.tab.active { color: var(--white); border-bottom-color: var(--silver); }
+
+/* ── PANELS ── */
+.panel { display: none; padding: 24px; }
+.panel.active { display: block; }
+
+/* ── CARDS ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+.card-title { font-size: 11px; font-weight: 700; color: var(--silver); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+
+/* ── GRIDS ── */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+
+/* ── STATS ── */
+.stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 14px; text-align: center; }
+.stat-val { font-size: 22px; font-weight: 700; color: var(--white); }
+.stat-lbl { font-size: 11px; color: var(--silver3); margin-top: 3px; }
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--surface2); text-align: left; padding: 9px 10px; font-weight: 600; color: var(--silver2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--silver); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.row-red td   { background: rgba(239,68,68,0.08) !important; }
+.row-green td { background: rgba(34,197,94,0.08) !important; }
+.row-guar td  { background: rgba(167,139,250,0.08) !important; }
+.row-sub td   { opacity: 0.65; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; border: 1px solid transparent; }
+.b-silver  { background: #1f1f1f; color: var(--silver); border-color: var(--border2); }
+.b-green   { background: rgba(34,197,94,0.15); color: var(--green); border-color: rgba(34,197,94,0.3); }
+.b-red     { background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.b-blue    { background: rgba(96,165,250,0.15); color: var(--blue); border-color: rgba(96,165,250,0.3); }
+.b-purple  { background: rgba(167,139,250,0.15); color: var(--purple); border-color: rgba(167,139,250,0.3); }
+.b-amber   { background: rgba(245,158,11,0.15); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+.b-yes     { background: rgba(34,197,94,0.12); color: var(--green); border-color: rgba(34,197,94,0.25); }
+.b-no      { background: rgba(239,68,68,0.12); color: #f87171; border-color: rgba(239,68,68,0.25); }
+
+/* ── RANK BADGES ── */
+.rank-r4 { background: rgba(96,165,250,0.12); color: var(--blue); border: 1px solid rgba(96,165,250,0.25); }
+.rank-r5 { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+.rank-r3 { background: var(--surface2); color: var(--silver2); border: 1px solid var(--border2); }
+.rank-r2 { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+
+/* ── PARTICIPATION SCORE ── */
+.pscore { display: inline-block; min-width: 46px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid transparent; }
+.pscore-high { background: rgba(34,197,94,0.15); color: var(--green); border-color: rgba(34,197,94,0.3); }
+.pscore-mid  { background: rgba(245,158,11,0.15); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+.pscore-low  { background: rgba(239,68,68,0.15); color: var(--red); border-color: rgba(239,68,68,0.3); }
+.pscore-zero { background: var(--surface2); color: var(--silver3); border-color: var(--border); }
+
+/* ── BUTTONS ── */
+button { padding: 9px 18px; border-radius: 6px; border: 1px solid transparent; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+.btn-p { background: var(--white); color: #000; border-color: var(--silver); }
+.btn-p:hover { background: var(--silver); }
+.btn-s { background: var(--surface2); color: var(--silver); border-color: var(--border2); }
+.btn-s:hover { background: var(--border2); color: var(--white); }
+.btn-x    { background: rgba(239,68,68,0.15); color: var(--red); font-size: 11px; padding: 3px 9px; border-radius: 4px; border: 1px solid rgba(239,68,68,0.25); cursor: pointer; }
+.btn-x:hover { background: rgba(239,68,68,0.3); }
+.btn-edit { background: var(--surface2); color: var(--silver2); font-size: 11px; padding: 3px 9px; border-radius: 4px; border: 1px solid var(--border2); cursor: pointer; margin-right: 4px; }
+.btn-edit:hover { background: var(--border2); color: var(--white); }
+
+/* ── FORM ── */
+input[type=text], input[type=number], select {
+  padding: 8px 10px; border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface2); color: var(--white);
+  font-size: 13px; width: 100%;
+}
+input:focus, select:focus { outline: 1px solid var(--silver2); border-color: var(--silver2); }
+select option { background: #1f1f1f; color: var(--white); }
+label { font-size: 11px; font-weight: 600; color: var(--silver3); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── INFO BOXES ── */
+.info   { background: rgba(96,165,250,0.06); border-left: 3px solid var(--blue); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #a0a0a0; margin-bottom: 14px; }
+.warn   { background: rgba(245,158,11,0.06); border-left: 3px solid var(--amber); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #a0a0a0; margin-bottom: 14px; }
+.cs-info { background: rgba(96,165,250,0.06); border-left: 3px solid var(--blue); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #a0a0a0; margin-bottom: 14px; }
+.ds-info { background: rgba(34,197,94,0.06); border-left: 3px solid var(--green); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #a0a0a0; margin-bottom: 14px; }
+.ps-info { background: rgba(167,139,250,0.06); border-left: 3px solid var(--purple); border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #a0a0a0; margin-bottom: 14px; }
+
+/* ── THP BAR ── */
+.thpbar { display: flex; align-items: center; gap: 8px; }
+.bar-bg { flex: 1; background: var(--surface2); border-radius: 3px; height: 4px; min-width: 50px; }
+.bar-fill { height: 4px; border-radius: 3px; background: var(--silver2); }
+.sbar-bg { flex: 1; background: var(--surface2); border-radius: 3px; height: 4px; min-width: 50px; }
+.sbar-fill-pos { height: 4px; border-radius: 3px; background: var(--green); }
+.sbar-fill-neg { height: 4px; border-radius: 3px; background: var(--red); }
+
+/* ── LAYOUT ── */
+.row-end { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.row-bet { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; margin: 2px; font-size: 12px; color: var(--silver); }
+
+/* ── SCROLL ── */
+.sc { max-height: 460px; overflow-y: auto; }
+.sc::-webkit-scrollbar { width: 5px; }
+.sc::-webkit-scrollbar-track { background: var(--surface); }
+.sc::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+.sth th { position: sticky; top: 0; z-index: 1; }
+
+/* ── TEAM CARDS ── */
+.tcard { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.tcard-a { border-top: 2px solid var(--silver2); }
+.tcard-b { border-top: 2px solid var(--silver3); }
+.tha { font-size: 13px; font-weight: 700; color: var(--white); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.thb { font-size: 13px; font-weight: 700; color: var(--silver2); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+/* ── DELTA ── */
+.dp { color: var(--green); font-weight: 700; }
+.dn { color: var(--red); font-weight: 700; }
+.dz { color: var(--silver3); }
+
+/* ── HISTORY DOTS ── */
+.hist-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 1px; }
+.dot-start { background: var(--green); }
+.dot-sub   { background: var(--blue); }
+.dot-miss  { background: var(--red); }
+.dot-abs   { background: var(--border2); }
+.dot-left  { background: var(--purple); }
+.dot-exc   { background: var(--amber); }
+
+/* ── DIVIDER ── */
+.section-sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* ── TOAST ── */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--white); color: #000; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* ── NOTES TABLE ── */
+.notes-table td:first-child { color: var(--silver); font-weight: 700; width: 24px; padding-right: 12px; }
+.notes-table td { border-bottom: 1px solid var(--border); padding: 9px 10px; color: #b0b0b0; }
+.notes-table tr:last-child td { border-bottom: none; }
+
+/* ── CHECKBOX ── */
+input[type=checkbox] { accent-color: var(--silver); width: 16px; height: 16px; cursor: pointer; }
+
+/* ── LINEUP EDITOR ROW ── */
+.le-row { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); }
+
+@media(max-width:700px){ .g2,.g3,.g4{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div>
+    <h1>⚔ SSYN BATTLEGROUND TEAM BUILDER</h1>
+    <div class="sub">Canyon Storm &amp; Desert Storm &nbsp;·&nbsp; THP-balanced &nbsp;·&nbsp; Participation-weighted &nbsp;·&nbsp; Fair rotations</div>
+  </div>
+  <div class="header-actions">
+    <span class="credit">Created by Navadronx</span>
+    <button class="btn-export" onclick="exportJSON()">⬇ Backup</button>
+    <label class="btn-import-lbl" for="importFile">⬆ Restore</label>
+    <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" />
+  </div>
+</div>
+
+<!-- MODE BAR -->
+<div class="mode-bar">
+  <span class="mode-label">Mode</span>
+  <div class="mode-toggle">
+    <button class="mode-btn on-cs" id="btnCS" onclick="setMode('CS')">CS — Canyon Storm</button>
+    <button class="mode-btn" id="btnDS" onclick="setMode('DS')">DS — Desert Storm</button>
+  </div>
+  <span class="mode-pill" id="modePill">Team A = highest THP block · Team B = remaining</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-btn-roster"   onclick="showTab('roster',this)">Roster</div>
+  <div class="tab"        id="tab-btn-build"    onclick="showTab('build',this)">Build Teams</div>
+  <div class="tab"        id="tab-btn-tracking" onclick="showTab('tracking',this)">Attendance</div>
+  <div class="tab"        id="tab-btn-scores"   onclick="showTab('scores',this)">Participation Scores</div>
+  <div class="tab"        id="tab-btn-notes"    onclick="showTab('notes',this)">Rules &amp; Notes</div>
+</div>
+
+<!-- ═══ ROSTER ═══ -->
+<div id="tab-roster" class="panel active">
+  <div class="card">
+    <div class="card-title">Add Member</div>
+    <div style="display:grid;grid-template-columns:1.8fr 0.8fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px;">
+      <div><label>Gamertag</label><input type="text" id="newName" placeholder="Name" /></div>
+      <div><label>THP</label><input type="number" id="newThp" placeholder="150" /></div>
+      <div><label>Alliance Rank</label>
+        <select id="newRank">
+          <option value="R4">R4</option><option value="R5">R5</option>
+          <option value="R3" selected>R3</option><option value="R2">R2</option>
+        </select>
+      </div>
+      <div><button class="btn-p" onclick="addPlayer()" style="margin-top:21px;">+ Add</button></div>
+    </div>
+    <div style="max-width:500px;"><label>Notes</label><input type="text" id="newNotes" placeholder="Optional" /></div>
+    <div class="info" style="margin-top:14px;margin-bottom:0;">R4 and R5 members are always included in lineups automatically. New members start with a Participation Score of 0.</div>
+  </div>
+
+  <div class="card">
+    <div class="row-bet">
+      <div class="card-title">Full Roster</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" style="width:170px;" id="rosterSearch" placeholder="Search…" oninput="renderRoster()" />
+        <select id="rosterFilter" style="width:180px;" onchange="renderRoster()">
+          <option value="">All members</option>
+          <option value="Y">Playing this week ✓</option>
+          <option value="N">Not playing</option>
+          <option value="guaranteed">Guaranteed next round</option>
+        </select>
+      </div>
+    </div>
+    <div class="sc sth">
+      <table>
+        <thead><tr>
+          <th>#</th>
+          <th onclick="sortRoster('name')" style="cursor:pointer;">Name ↕</th>
+          <th onclick="sortRoster('thp')" style="cursor:pointer;">THP ↕</th>
+          <th>Rank</th>
+          <th onclick="sortRoster('score')" style="cursor:pointer;text-align:center;">P.Score ↕</th>
+          <th style="text-align:center;">Playing?</th>
+          <th>Flag</th>
+          <th>Notes</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="rosterBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--silver3);" id="rosterCount"></div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div id="editModal" class="card" style="display:none;border:1px solid var(--silver3);max-width:520px;">
+    <div class="card-title">Edit Member</div>
+    <input type="hidden" id="editOrigName" />
+    <div class="g2" style="margin-bottom:12px;">
+      <div><label>Name</label><input type="text" id="editName" /></div>
+      <div><label>THP</label><input type="number" id="editThp" /></div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label>Alliance Rank</label>
+      <select id="editRank" style="max-width:200px;">
+        <option value="R4">R4</option><option value="R5">R5</option>
+        <option value="R3">R3</option><option value="R2">R2</option>
+      </select>
+    </div>
+    <div style="margin-bottom:14px;"><label>Notes</label><input type="text" id="editNotes" /></div>
+    <div class="row-end">
+      <button class="btn-p" onclick="saveEdit()">Save Changes</button>
+      <button class="btn-s" onclick="closeEdit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ BUILD TEAMS ═══ -->
+<div id="tab-build" class="panel">
+  <div id="settingsCS" class="card">
+    <div class="card-title">Canyon Storm (CS) — Settings</div>
+    <div class="cs-info"><strong>CS:</strong> Team A takes the top (starters + subs) block sorted by THP — the strongest possible lineup. Team B gets the next block. If signups are short, the tool auto-fills with the strongest non-registered players.</div>
+    <div class="g4">
+      <div><label>Team A Starters</label><input type="number" id="cs_sA" value="20" min="1" /></div>
+      <div><label>Team A Subs</label><input type="number" id="cs_subA" value="10" min="0" /></div>
+      <div><label>Team B Starters</label><input type="number" id="cs_sB" value="20" min="1" /></div>
+      <div><label>Team B Subs</label><input type="number" id="cs_subB" value="10" min="0" /></div>
+    </div>
+  </div>
+  <div id="settingsDS" class="card" style="display:none;">
+    <div class="card-title">Desert Storm (DS) — Settings</div>
+    <div class="ds-info"><strong>DS:</strong> After R4/R5 are locked in, remaining registered players are ordered by Participation Score. THP is used only to balance teams after placement. If signups are short, the strongest non-registered players fill in.</div>
+    <div class="g4">
+      <div><label>Starters per Team</label><input type="number" id="ds_s" value="20" min="1" /></div>
+      <div><label>Subs per Team</label><input type="number" id="ds_sub" value="10" min="0" /></div>
+      <div></div><div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="warn" style="margin-bottom:0;"><strong>Auto-handled:</strong> R4 and R5 always start · Guaranteed players jump the queue · Left-out players auto-flagged as Guaranteed · P.Score influences DS draw order.</div>
+    <div class="row-end">
+      <button class="btn-p" onclick="buildTeams()">⚡ Generate Teams</button>
+      <button class="btn-s" onclick="clearTeams()">Clear</button>
+    </div>
+  </div>
+
+  <div id="teamOutput" style="display:none;">
+    <div class="g4" style="margin-bottom:16px;">
+      <div class="stat"><div class="stat-val" id="thpA">—</div><div class="stat-lbl">Team A THP</div></div>
+      <div class="stat"><div class="stat-val" id="thpB">—</div><div class="stat-lbl">Team B THP</div></div>
+      <div class="stat" id="diffStat"><div class="stat-val" id="thpDiff">—</div><div class="stat-lbl">Difference</div></div>
+      <div class="stat"><div class="stat-val" id="totalPlaced">—</div><div class="stat-lbl">Placed</div></div>
+    </div>
+    <div id="lowWarn" class="warn" style="display:none;">⚠ <strong>Low signups</strong> — gaps filled with strongest available non-registered players.</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Left Out → Auto-Guaranteed Next Round</div>
+      <div id="leftoverList"><span style="color:var(--silver3);font-size:12px;">Everyone placed!</span></div>
+    </div>
+    <div class="g2">
+      <div class="tcard tcard-a">
+        <div class="tha" id="hdrA">Team A</div>
+        <table><thead><tr><th>#</th><th>Name</th><th>THP</th><th>P.Score</th><th>Role</th></tr></thead>
+        <tbody id="bodyA"></tbody></table>
+      </div>
+      <div class="tcard tcard-b">
+        <div class="thb" id="hdrB">Team B</div>
+        <table><thead><tr><th>#</th><th>Name</th><th>THP</th><th>P.Score</th><th>Role</th></tr></thead>
+        <tbody id="bodyB"></tbody></table>
+      </div>
+    </div>
+    <div class="row-end" style="margin-top:14px;">
+      <button class="btn-s" onclick="openLineupEditor()">✎ Edit Lineup</button>
+    </div>
+  </div>
+
+  <!-- LINEUP EDITOR -->
+  <div id="lineupEditor" class="card" style="display:none;border:1px solid var(--silver3);margin-top:0;">
+    <div class="row-bet">
+      <div class="card-title">Edit Lineup — Last-Minute Changes</div>
+      <button class="btn-s" style="font-size:12px;padding:5px 12px;" onclick="closeLineupEditor()">✕ Close</button>
+    </div>
+    <div class="info">Change any player's slot or remove them. Use the section below to add a late signup.</div>
+    <div id="lineupEditorRows" style="max-height:440px;overflow-y:auto;"></div>
+    <hr class="section-sep">
+    <div class="card-title">Add Late Signup</div>
+    <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;"><label>Player</label><select id="latePlayerSelect"></select></div>
+      <div style="min-width:180px;"><label>Assign to</label>
+        <select id="lateRoleSelect">
+          <option value="Starter-A">Team A — Starter</option>
+          <option value="Sub-A">Team A — Sub</option>
+          <option value="Starter-B">Team B — Starter</option>
+          <option value="Sub-B">Team B — Sub</option>
+        </select>
+      </div>
+      <button class="btn-p" onclick="addLatePlayer()">+ Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ATTENDANCE ═══ -->
+<div id="tab-tracking" class="panel">
+  <div class="card">
+    <div class="row-bet">
+      <div class="card-title">Post-Battle Attendance</div>
+      <button class="btn-p" onclick="recordWeek()">+ Record This Week</button>
+    </div>
+    <div class="info">
+      <span style="background:rgba(239,68,68,0.15);color:var(--red);padding:2px 8px;border-radius:4px;margin-right:6px;">Red = 2+ total misses</span>
+      <span style="background:rgba(34,197,94,0.15);color:var(--green);padding:2px 8px;border-radius:4px;margin-right:6px;">Green = 0 misses last 3 weeks</span>
+      <span style="background:rgba(167,139,250,0.15);color:var(--purple);padding:2px 8px;border-radius:4px;">Purple = Guaranteed next round</span><br/>
+      <span style="margin-top:6px;display:block;">Delta = Starts − Subs. Anyone ≤ −2 should be promoted to Starter.</span>
+    </div>
+    <div class="sc sth">
+      <table>
+        <thead><tr>
+          <th>Name</th><th>THP</th><th>Rank</th><th>Starts</th><th>Subs</th><th>Misses</th><th>Delta</th><th>P.Score</th><th>Last 6 Weeks</th><th>Action</th>
+        </tr></thead>
+        <tbody id="attendBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="weekModal" class="card" style="display:none;border:1px solid var(--silver3);">
+    <div class="card-title">Record Post-Battle Attendance</div>
+    <p style="font-size:12px;color:var(--silver3);margin-bottom:10px;">Roles are pre-filled from the last lineup. Mark who attended and who didn't. Non-registered players default to Not Applicable.</p>
+    <div id="weekForm" style="max-height:440px;overflow-y:auto;padding-right:4px;"></div>
+    <div class="row-end">
+      <button class="btn-p" id="weekSaveBtn" onclick="saveWeek()">Save Attendance</button>
+      <button class="btn-s" onclick="document.getElementById('weekModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PARTICIPATION SCORES ═══ -->
+<div id="tab-scores" class="panel">
+  <div class="card">
+    <div class="card-title">Participation Score Leaderboard</div>
+    <div class="ps-info">
+      <strong>Scoring (12-week rolling window):</strong>&nbsp;
+      <strong style="color:var(--green);">+2</strong> Attended as Starter &nbsp;·&nbsp;
+      <strong style="color:var(--green);">+2</strong> Attended as Sub &nbsp;·&nbsp;
+      <strong style="color:var(--green);">+1</strong> Signed up but Left Out &nbsp;·&nbsp;
+      <strong style="color:var(--red);">−3</strong> Signed up &amp; no-showed &nbsp;·&nbsp;
+      <strong style="color:var(--silver3);">0</strong> Excused &nbsp;·&nbsp;
+      <strong style="color:var(--silver3);">0</strong> Did not sign up
+    </div>
+    <div class="sc sth">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Name</th><th>Rank</th><th>THP</th>
+          <th>P.Score (12w)</th><th>Score Bar</th><th>Weeks Active</th><th>Last 12 Weeks</th>
+        </tr></thead>
+        <tbody id="scoresBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RULES & NOTES ═══ -->
+<div id="tab-notes" class="panel">
+  <div class="g2">
+    <div class="card">
+      <div class="card-title" style="color:var(--blue);">CS — Canyon Storm</div>
+      <table class="notes-table">
+        <tr><td>1</td><td>Team A = strongest (starters + subs) by THP. Team B = remaining.</td></tr>
+        <tr><td>2</td><td>Low signups? Auto-fills with strongest non-registered players.</td></tr>
+        <tr><td>3</td><td>R4 and R5 members always included automatically.</td></tr>
+        <tr><td>4</td><td>Assign roster 24 hours before. Send mail — no DMs.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--green);">DS — Desert Storm</div>
+      <table class="notes-table">
+        <tr><td>1</td><td>Draw order is by Participation Score — most consistent players first. THP balances teams after.</td></tr>
+        <tr><td>2</td><td>R4 and R5 members always included automatically.</td></tr>
+        <tr><td>3</td><td>Try not to have someone miss both CS and DS the same week.</td></tr>
+        <tr><td>4</td><td>Assign roster 24 hours before. Send mail — no DMs.</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Universal Rules</div>
+    <table class="notes-table">
+      <tr><td>★</td><td>Left-out players are auto-guaranteed next round — tracked automatically.</td></tr>
+      <tr><td>★</td><td>Subs with Delta ≤ −2 should be promoted to starters.</td></tr>
+      <tr><td>★</td><td>Registration (the checkbox) is the #1 deciding factor each week. Rank + THP + P.Score determine priority after that.</td></tr>
+      <tr><td>★</td><td>Participation Scores are fully visible — complete transparency.</td></tr>
+    </table>
+  </div>
+  <div class="card" style="border-left:2px solid var(--purple);">
+    <div class="card-title" style="color:var(--purple);">Participation Score Key</div>
+    <table class="notes-table">
+      <tr><td style="color:var(--green);">+2</td><td>Attended as Starter</td></tr>
+      <tr><td style="color:var(--green);">+2</td><td>Attended as Sub — showing up counts the same regardless of role</td></tr>
+      <tr><td style="color:var(--green);">+1</td><td>Signed up but left out (not their fault)</td></tr>
+      <tr><td style="color:var(--red);">−3</td><td>Signed up but no-showed — only applies if they were in the lineup</td></tr>
+      <tr><td style="color:var(--silver3);">0</td><td>Excused absence — life happens, no penalty</td></tr>
+      <tr><td style="color:var(--silver3);">0</td><td>Did not sign up — neutral</td></tr>
+    </table>
+    <p style="font-size:11px;color:var(--silver3);margin-top:10px;">Only the last 12 weeks count. Older activity falls off automatically.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Priority Order</div>
+    <table class="notes-table">
+      <tr><td><span class="badge rank-r4">R4 / R5</span></td><td>Always included — no draw needed.</td></tr>
+      <tr><td><span class="badge b-purple">Guaranteed</span></td><td>Left out last round — drawn before everyone else.</td></tr>
+      <tr><td><span class="badge b-yes">Registered ✓</span></td><td>Signed up — ordered by P.Score (DS) or THP (CS).</td></tr>
+      <tr><td><span class="badge b-no">Not Registered</span></td><td>Skipped unless filling a gap — strongest first.</td></tr>
+    </table>
+  </div>
+  <div style="text-align:center;padding:12px;color:var(--silver3);font-size:11px;font-style:italic;">
+    Created by Navadronx · SSYN Alliance
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════
+const STORAGE_KEY  = 'ssyn_roster_v6';
+const DECAY_WEEKS  = 12;
+const PS = { start:2, sub:2, leftout:1, miss:-3, excused:0, absent:0 };
+
+let players    = [];
+let lastLineup = {};
+let mode       = 'CS';
+let sortKey    = 'score';
+let sortDir    = -1;
+
+// ═══════════════════════════════════════════
+// PARTICIPATION SCORE
+// ═══════════════════════════════════════════
+function calcScore(p) {
+  return (p.history||[]).slice(-DECAY_WEEKS).reduce((sum,h) => {
+    if (h==='start')   return sum + PS.start;
+    if (h==='sub')     return sum + PS.sub;
+    if (h==='leftout') return sum + PS.leftout;
+    if (h==='miss')    return sum + PS.miss;
+    return sum;
+  }, 0);
+}
+
+function scoreBadge(score) {
+  const cls = score > 6 ? 'pscore-high' : score > 0 ? 'pscore-mid' : score < 0 ? 'pscore-low' : 'pscore-zero';
+  return `<span class="pscore ${cls}">${score>0?'+':''}${score}</span>`;
+}
+
+// ═══════════════════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════════════════
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({players, lastLineup})); } catch(e){}
+}
+
+function load() {
+  try {
+    const d = localStorage.getItem(STORAGE_KEY);
+    if (!d) return false;
+    const parsed = JSON.parse(d);
+    if (Array.isArray(parsed)) { players=parsed; lastLineup={}; }
+    else { players=parsed.players||[]; lastLineup=parsed.lastLineup||{}; }
+    return players.length > 0;
+  } catch(e){ return false; }
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify({version:5, exported:new Date().toISOString(), players}, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'SSYN_Backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); toast('Backup downloaded!');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const raw = JSON.parse(ev.target.result);
+      const imported = Array.isArray(raw) ? raw : (raw.players||[]);
+      if (!Array.isArray(imported)) throw new Error();
+      if (!confirm(`Import ${imported.length} players? This replaces the current roster.`)) return;
+      players = imported.map(p => ({
+        name:p.name||'', thp:p.thp||150, rank:p.rank||'R3',
+        registered:p.registered||'N', flag:p.flag||'', notes:p.notes||'',
+        starts:p.starts||0, subs:p.subs||0, misses:p.misses||0, history:p.history||[]
+      }));
+      save(); renderRoster(); renderScores(); toast(`Imported ${players.length} players!`);
+    } catch { alert('Invalid backup file.'); }
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ═══════════════════════════════════════════
+// MODE & TABS
+// ═══════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnCS').className = 'mode-btn'+(m==='CS'?' on-cs':'');
+  document.getElementById('btnDS').className = 'mode-btn'+(m==='DS'?' on-ds':'');
+  document.getElementById('modePill').textContent = m==='CS'
+    ? 'Team A = highest THP block · Team B = remaining'
+    : 'Draw order by P.Score · THP balances after placement';
+  document.getElementById('settingsCS').style.display = m==='CS'?'':'none';
+  document.getElementById('settingsDS').style.display = m==='DS'?'':'none';
+  clearTeams();
+}
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); });
+  el.classList.add('active');
+  const panel = document.getElementById('tab-'+id);
+  if (panel) panel.classList.add('active');
+  if (id==='tracking') renderAttend();
+  if (id==='scores')   renderScores();
+}
+
+// ═══════════════════════════════════════════
+// ROSTER
+// ═══════════════════════════════════════════
+function isAuto(p) { return p.rank==='R4'||p.rank==='R5'; }
+
+function addPlayer() {
+  const name  = document.getElementById('newName').value.trim();
+  const thp   = parseFloat(document.getElementById('newThp').value)||150;
+  const rank  = document.getElementById('newRank').value;
+  const notes = document.getElementById('newNotes').value.trim();
+  if (!name) { alert('Enter a name.'); return; }
+  if (players.find(p=>p.name.toLowerCase()===name.toLowerCase())) { alert('Player already exists.'); return; }
+  players.push({name,thp,rank,registered:'N',flag:'',notes,starts:0,subs:0,misses:0,history:[]});
+  ['newName','newThp','newNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('newRank').value='R3';
+  save(); renderRoster(); renderScores();
+}
+
+function removePlayer(name) {
+  if (!confirm('Remove '+name+'?')) return;
+  players = players.filter(p=>p.name!==name);
+  save(); renderRoster(); renderScores();
+}
+
+function toggleRegistered(name, checked) {
+  const p = players.find(x=>x.name===name); if(!p) return;
+  p.registered = checked?'Y':'N'; save();
+  const reg = players.filter(p=>p.registered==='Y').length;
+  document.getElementById('rosterCount').textContent =
+    `${players.length} total · ${reg} playing this week · ${players.filter(p=>p.flag==='guaranteed').length} guaranteed next round`;
+}
+
+function editPlayer(name) {
+  const p = players.find(x=>x.name===name); if(!p) return;
+  document.getElementById('editOrigName').value = name;
+  document.getElementById('editName').value     = p.name;
+  document.getElementById('editThp').value      = p.thp;
+  document.getElementById('editRank').value     = p.rank||'R3';
+  document.getElementById('editNotes').value    = p.notes||'';
+  document.getElementById('editModal').style.display='';
+  document.getElementById('editModal').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeEdit() { document.getElementById('editModal').style.display='none'; }
+
+function saveEdit() {
+  const orig = document.getElementById('editOrigName').value;
+  const p = players.find(x=>x.name===orig); if(!p) return;
+  const newName = document.getElementById('editName').value.trim();
+  if (!newName) { alert('Name cannot be empty.'); return; }
+  if (newName!==orig && players.find(x=>x.name.toLowerCase()===newName.toLowerCase())) { alert('Name already exists.'); return; }
+  p.name  = newName;
+  p.thp   = parseFloat(document.getElementById('editThp').value)||p.thp;
+  p.rank  = document.getElementById('editRank').value;
+  p.notes = document.getElementById('editNotes').value.trim();
+  closeEdit(); save(); renderRoster(); renderScores(); toast('Player updated!');
+}
+
+function sortRoster(key) {
+  if (sortKey===key) sortDir*=-1; else {sortKey=key;sortDir=-1;}
+  renderRoster();
+}
+
+function rankBadge(r) {
+  const m={R4:'rank-r4',R5:'rank-r5',R3:'rank-r3',R2:'rank-r2'};
+  return `<span class="badge ${m[r]||'rank-r3'}">${r||'R3'}</span>`;
+}
+function flagBadge(f) {
+  if (f==='guaranteed') return `<span class="badge b-purple" style="font-size:10px;">Guaranteed</span>`;
+  return '<span style="color:var(--silver3);font-size:11px;">—</span>';
+}
+
+function renderRoster() {
+  const search = (document.getElementById('rosterSearch').value||'').toLowerCase();
+  const filter = document.getElementById('rosterFilter').value;
+  let list = players.filter(p => {
+    if (search && !p.name.toLowerCase().includes(search)) return false;
+    if (!filter) return true;
+    if (filter==='guaranteed') return p.flag==='guaranteed';
+    return p.registered===filter;
+  });
+  list.sort((a,b)=>{
+    if (sortKey==='name')  return sortDir*a.name.localeCompare(b.name);
+    if (sortKey==='thp')   return sortDir*(b.thp-a.thp);
+    if (sortKey==='score') return sortDir*(calcScore(b)-calcScore(a));
+    return 0;
+  });
+  document.getElementById('rosterBody').innerHTML = list.map((p,i)=>{
+    const score = calcScore(p);
+    const rowCls = p.flag==='guaranteed'?'row-guar':'';
+    return `<tr class="${rowCls}">
+      <td style="color:var(--silver3);">${i+1}</td>
+      <td><strong style="color:var(--white);">${p.name}</strong></td>
+      <td><div class="thpbar"><span style="min-width:38px;color:var(--silver);">${p.thp}</span><div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,(p.thp/350)*100)}%"></div></div></div></td>
+      <td>${rankBadge(p.rank||'R3')}</td>
+      <td style="text-align:center;">${scoreBadge(score)}</td>
+      <td style="text-align:center;"><input type="checkbox" ${p.registered==='Y'?'checked':''} onchange="toggleRegistered('${p.name.replace(/'/g,"\\'")}',this.checked)" /></td>
+      <td>${flagBadge(p.flag||'')}</td>
+      <td style="color:var(--silver3);font-size:12px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.notes||''}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn-edit" onclick="editPlayer('${p.name.replace(/'/g,"\\'")}')">✎</button>
+        <button class="btn-x" onclick="removePlayer('${p.name.replace(/'/g,"\\'")}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  const reg = players.filter(p=>p.registered==='Y').length;
+  document.getElementById('rosterCount').textContent =
+    `${players.length} total · ${reg} playing this week · ${players.filter(p=>p.flag==='guaranteed').length} guaranteed next round`;
+}
+
+// ═══════════════════════════════════════════
+// PARTICIPATION SCORES TAB
+// ═══════════════════════════════════════════
+function renderScores() {
+  const ranked = [...players].map(p=>({...p,_score:calcScore(p)})).sort((a,b)=>b._score-a._score);
+  const maxScore = Math.max(1,...ranked.map(p=>Math.abs(p._score)));
+  document.getElementById('scoresBody').innerHTML = ranked.map((p,i)=>{
+    const history = (p.history||[]).slice(-DECAY_WEEKS);
+    const weeksActive = history.filter(h=>h!=='absent').length;
+    const barPct = Math.min(100,(Math.abs(p._score)/maxScore)*100);
+    const dots = history.map(h=>{
+      const cls = h==='start'?'dot-start':h==='sub'?'dot-sub':h==='miss'?'dot-miss':h==='leftout'?'dot-left':h==='excused'?'dot-exc':'dot-abs';
+      const lbl = h==='start'?'Started':h==='sub'?'Sub':h==='miss'?'Missed':h==='leftout'?'Left out':h==='excused'?'Excused':'Absent';
+      return `<span class="hist-dot ${cls}" title="${lbl}"></span>`;
+    }).join('');
+    return `<tr>
+      <td style="color:var(--silver3);font-weight:700;">${i+1}</td>
+      <td><strong style="color:var(--white);">${p.name}</strong></td>
+      <td>${rankBadge(p.rank||'R3')}</td>
+      <td style="color:var(--silver);">${p.thp}</td>
+      <td style="text-align:center;">${scoreBadge(p._score)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px;"><div class="sbar-bg"><div class="${p._score>=0?'sbar-fill-pos':'sbar-fill-neg'}" style="width:${barPct}%"></div></div><span style="font-size:11px;color:var(--silver3);min-width:28px;">${p._score>0?'+':''}${p._score}</span></div></td>
+      <td style="text-align:center;color:var(--silver2);">${weeksActive}</td>
+      <td>${dots||'<span style="color:var(--silver3);font-size:11px;">No history</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// LINEUP EDITOR
+// ═══════════════════════════════════════════
+function openLineupEditor() {
+  renderLineupEditor();
+  document.getElementById('lineupEditor').style.display='';
+  document.getElementById('lineupEditor').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeLineupEditor() { document.getElementById('lineupEditor').style.display='none'; }
+
+function renderLineupEditor() {
+  const roleOpts = [
+    {val:'Starter-A',lbl:'Team A — Starter'},
+    {val:'Sub-A',    lbl:'Team A — Sub'},
+    {val:'Starter-B',lbl:'Team B — Starter'},
+    {val:'Sub-B',    lbl:'Team B — Sub'},
+    {val:'Leftover', lbl:'Left Out (Guaranteed)'},
+    {val:'remove',   lbl:'Remove from lineup'},
+  ];
+  const order = {'Starter-A':0,'Sub-A':1,'Starter-B':2,'Sub-B':3,'Leftover':4};
+  const entries = Object.entries(lastLineup).sort((a,b)=>(order[a[1]]??9)-(order[b[1]]??9)||a[0].localeCompare(b[0]));
+
+  document.getElementById('lineupEditorRows').innerHTML = entries.map(([name,role])=>{
+    const p = players.find(x=>x.name===name);
+    const opts = roleOpts.map(o=>`<option value="${o.val}" ${role===o.val?'selected':''}>${o.lbl}</option>`).join('');
+    return `<div class="le-row">
+      <span style="min-width:180px;font-weight:500;color:var(--white);">${name}</span>
+      <span style="font-size:12px;color:var(--silver3);min-width:40px;">${p?p.thp:'?'}</span>
+      <span style="min-width:50px;">${p?scoreBadge(calcScore(p)):''}</span>
+      <select onchange="changePlayerRole('${name.replace(/'/g,"\\'")}',this.value)" style="width:190px;font-size:12px;">${opts}</select>
+    </div>`;
+  }).join('') || '<p style="color:var(--silver3);font-size:13px;">No lineup generated yet.</p>';
+
+  const inLineup = new Set(Object.keys(lastLineup));
+  const avail = players.filter(p=>!inLineup.has(p.name)).sort((a,b)=>b.thp-a.thp);
+  document.getElementById('latePlayerSelect').innerHTML = avail.length
+    ? avail.map(p=>`<option value="${p.name}">${p.name} (${p.thp} THP · ${calcScore(p)>0?'+':''}${calcScore(p)}pts)</option>`).join('')
+    : '<option value="">— None available —</option>';
+}
+
+function changePlayerRole(name, newRole) {
+  if (newRole==='remove') delete lastLineup[name]; else lastLineup[name]=newRole;
+  refreshTeamDisplay(); renderLineupEditor(); save();
+}
+
+function addLatePlayer() {
+  const name = document.getElementById('latePlayerSelect').value;
+  const role = document.getElementById('lateRoleSelect').value;
+  if (!name) { alert('No players available.'); return; }
+  const p = players.find(x=>x.name===name);
+  if (p) p.registered='Y';
+  lastLineup[name]=role;
+  refreshTeamDisplay(); renderLineupEditor(); renderRoster(); save();
+  toast(`${name} added to lineup!`);
+}
+
+function refreshTeamDisplay() {
+  const get = roleKey => Object.entries(lastLineup).filter(([,r])=>r===roleKey).map(([n])=>players.find(p=>p.name===n)).filter(Boolean);
+  const startersA=get('Starter-A'), subsA=get('Sub-A'), startersB=get('Starter-B'), subsB=get('Sub-B'), leftover=get('Leftover');
+  const thpA=startersA.reduce((s,p)=>s+p.thp,0), thpB=startersB.reduce((s,p)=>s+p.thp,0);
+  document.getElementById('thpA').textContent=Math.round(thpA).toLocaleString();
+  document.getElementById('thpB').textContent=Math.round(thpB).toLocaleString();
+  const diff=Math.abs(thpA-thpB);
+  document.getElementById('thpDiff').textContent=Math.round(diff).toLocaleString();
+  document.getElementById('diffStat').style.background=diff<=300?'rgba(34,197,94,0.1)':diff<=700?'rgba(245,158,11,0.1)':'rgba(239,68,68,0.1)';
+  document.getElementById('totalPlaced').textContent=startersA.length+subsA.length+startersB.length+subsB.length;
+  document.getElementById('leftoverList').innerHTML=leftover.length===0
+    ?'<span style="color:var(--silver3);font-size:12px;">Everyone placed!</span>'
+    :leftover.map(p=>`<div class="chip">${p.name} <span style="color:var(--silver3);font-size:11px;">${p.thp} · ${calcScore(p)>0?'+':''}${calcScore(p)}pts</span></div>`).join('');
+  const rows=(s,sb)=>[
+    ...s.map((p,i)=>`<tr><td>${i+1}</td><td style="color:var(--white);">${p.name}</td><td>${p.thp}</td><td>${scoreBadge(calcScore(p))}</td><td><span class="badge b-green">Starter</span></td></tr>`),
+    ...sb.map((p,i)=>`<tr class="row-sub"><td style="color:var(--silver3);">S${i+1}</td><td>${p.name}</td><td>${p.thp}</td><td>${scoreBadge(calcScore(p))}</td><td><span class="badge b-silver">Sub</span></td></tr>`)
+  ].join('');
+  document.getElementById('bodyA').innerHTML=rows(startersA,subsA);
+  document.getElementById('bodyB').innerHTML=rows(startersB,subsB);
+}
+
+// ═══════════════════════════════════════════
+// BUILD TEAMS
+// ═══════════════════════════════════════════
+function buildTeams() { mode==='CS'?buildCS():buildDS(); }
+
+function buildCS() {
+  const sA=parseInt(document.getElementById('cs_sA').value)||20;
+  const subA=parseInt(document.getElementById('cs_subA').value)||10;
+  const sB=parseInt(document.getElementById('cs_sB').value)||20;
+  const subB=parseInt(document.getElementById('cs_subB').value)||10;
+  const totalA=sA+subA, totalB=sB+subB;
+
+  const autos    = players.filter(p=>isAuto(p));
+  const rest     = players.filter(p=>!isAuto(p));
+  const guar     = rest.filter(p=>p.flag==='guaranteed'&&p.registered==='Y');
+  const sigY     = rest.filter(p=>p.registered==='Y'&&p.flag!=='guaranteed');
+  const fallback = rest.filter(p=>p.registered!=='Y').sort((a,b)=>b.thp-a.thp||calcScore(b)-calcScore(a));
+
+  const lowSignup=(autos.length+guar.length+sigY.length)<(sA+sB);
+  const master=[...autos,...guar,...sigY,...fallback];
+  const sorted=[...master].sort((a,b)=>b.thp-a.thp||calcScore(b)-calcScore(a));
+
+  const slotA=sorted.slice(0,totalA), slotB=sorted.slice(totalA,totalA+totalB);
+  const leftoverPlayers=sorted.slice(totalA+totalB);
+  const teamA=slotA.slice(0,sA).map(p=>({...p,role:'Starter'}));
+  const subAArr=slotA.slice(sA).map(p=>({...p,role:'Sub'}));
+  const teamB=slotB.slice(0,sB).map(p=>({...p,role:'Starter'}));
+  const subBArr=slotB.slice(sB).map(p=>({...p,role:'Sub'}));
+  const thpA=teamA.reduce((s,p)=>s+p.thp,0), thpB=teamB.reduce((s,p)=>s+p.thp,0);
+
+  renderResult({teamA,teamB,subA:subAArr,subB:subBArr,leftover:leftoverPlayers,thpA,thpB,lowSignup,
+    hA:`Team A — Top ${totalA} THP (${sA} starters + ${subA} subs)`,
+    hB:`Team B — Next ${totalB} (${sB} starters + ${subB} subs)`});
+}
+
+function buildDS() {
+  const sEach=parseInt(document.getElementById('ds_s').value)||20;
+  const sub=parseInt(document.getElementById('ds_sub').value)||10;
+  const totalS=sEach*2, totalSub=sub*2;
+
+  const autos    = players.filter(p=>isAuto(p));
+  const rest     = players.filter(p=>!isAuto(p));
+  const guar     = rest.filter(p=>p.flag==='guaranteed'&&p.registered==='Y');
+  const byScore  = rest.filter(p=>p.registered==='Y'&&p.flag!=='guaranteed').sort((a,b)=>calcScore(b)-calcScore(a));
+  const fallback = rest.filter(p=>p.registered!=='Y').sort((a,b)=>b.thp-a.thp||calcScore(b)-calcScore(a));
+
+  const lowSignup=(autos.length+guar.length+byScore.length)<totalS;
+  let sPool=[],subPool=[],leftover=[];
+  const push=p=>{ if(sPool.length<totalS)sPool.push(p); else if(subPool.length<totalSub)subPool.push(p); else leftover.push(p); };
+  autos.forEach(push); guar.forEach(push); byScore.forEach(push);
+  if(sPool.length<totalS||subPool.length<totalSub) fallback.forEach(push);
+
+  sPool.sort((a,b)=>b.thp-a.thp);
+  let tA=[],tB=[],tAt=0,tBt=0;
+  sPool.forEach(p=>{ if(tAt<=tBt){tA.push({...p,role:'Starter'});tAt+=p.thp;}else{tB.push({...p,role:'Starter'});tBt+=p.thp;} });
+  subPool.sort((a,b)=>b.thp-a.thp);
+  let sA=[],sB=[],sAt=0,sBt=0;
+  subPool.forEach(p=>{ if(sAt<=sBt){sA.push({...p,role:'Sub'});sAt+=p.thp;}else{sB.push({...p,role:'Sub'});sBt+=p.thp;} });
+
+  renderResult({teamA:tA,teamB:tB,subA:sA,subB:sB,leftover,thpA:tAt,thpB:tBt,lowSignup,hA:'Team A',hB:'Team B'});
+}
+
+function renderResult({teamA,teamB,subA,subB,leftover,thpA,thpB,lowSignup,hA,hB}) {
+  leftover.forEach(p=>{ const pl=players.find(x=>x.name===p.name); if(pl) pl.flag='guaranteed'; });
+  lastLineup={};
+  teamA.forEach(p=>{lastLineup[p.name]='Starter-A';});
+  subA.forEach(p =>{lastLineup[p.name]='Sub-A';});
+  teamB.forEach(p=>{lastLineup[p.name]='Starter-B';});
+  subB.forEach(p =>{lastLineup[p.name]='Sub-B';});
+  leftover.forEach(p=>{lastLineup[p.name]='Leftover';});
+  save(); renderRoster(); renderScores();
+
+  document.getElementById('thpA').textContent=Math.round(thpA).toLocaleString();
+  document.getElementById('thpB').textContent=Math.round(thpB).toLocaleString();
+  const diff=Math.abs(thpA-thpB);
+  document.getElementById('thpDiff').textContent=Math.round(diff).toLocaleString();
+  document.getElementById('diffStat').style.background=diff<=300?'rgba(34,197,94,0.1)':diff<=700?'rgba(245,158,11,0.1)':'rgba(239,68,68,0.1)';
+  document.getElementById('totalPlaced').textContent=teamA.length+teamB.length+subA.length+subB.length;
+  document.getElementById('hdrA').textContent=hA; document.getElementById('hdrB').textContent=hB;
+  document.getElementById('lowWarn').style.display=lowSignup?'':'none';
+  document.getElementById('leftoverList').innerHTML=leftover.length===0
+    ?'<span style="color:var(--silver3);font-size:12px;">Everyone placed!</span>'
+    :leftover.map(p=>`<div class="chip">${p.name} <span style="color:var(--silver3);font-size:11px;">${p.thp} · ${calcScore(p)>0?'+':''}${calcScore(p)}pts</span></div>`).join('');
+
+  const rows=(s,sb)=>[
+    ...s.map((p,i) =>`<tr><td>${i+1}</td><td style="color:var(--white);">${p.name}</td><td>${p.thp}</td><td>${scoreBadge(calcScore(p))}</td><td><span class="badge b-green">Starter</span></td></tr>`),
+    ...sb.map((p,i)=>`<tr class="row-sub"><td style="color:var(--silver3);">S${i+1}</td><td>${p.name}</td><td>${p.thp}</td><td>${scoreBadge(calcScore(p))}</td><td><span class="badge b-silver">Sub</span></td></tr>`)
+  ].join('');
+  document.getElementById('bodyA').innerHTML=rows(teamA,subA);
+  document.getElementById('bodyB').innerHTML=rows(teamB,subB);
+  document.getElementById('teamOutput').style.display='';
+  document.getElementById('lineupEditor').style.display='none';
+  toast('Teams generated!');
+}
+
+function clearTeams() {
+  document.getElementById('teamOutput').style.display='none';
+  document.getElementById('lineupEditor').style.display='none';
+}
+
+// ═══════════════════════════════════════════
+// ATTENDANCE
+// ═══════════════════════════════════════════
+function renderAttend() {
+  const active=[...players].sort((a,b)=>calcScore(b)-calcScore(a));
+  document.getElementById('attendBody').innerHTML=active.map(p=>{
+    const score=calcScore(p), delta=(p.starts||0)-(p.subs||0), tm=p.misses||0;
+    const m3=(p.history||[]).slice(-3).filter(h=>h==='miss').length;
+    const rowCls=tm>=2?'row-red':m3===0&&(p.history||[]).length>=3?'row-green':p.flag==='guaranteed'?'row-guar':'';
+    const dCls=delta<-2?'dn':delta>0?'dp':'dz';
+    const action=delta<=-2?`<span class="badge b-purple" style="font-size:11px;">→ Promote</span>`:'';
+    const dots=(p.history||[]).slice(-6).map(h=>{
+      const cls=h==='start'?'dot-start':h==='sub'?'dot-sub':h==='miss'?'dot-miss':h==='leftout'?'dot-left':h==='excused'?'dot-exc':'dot-abs';
+      return `<span class="hist-dot ${cls}" title="${h}"></span>`;
+    }).join('');
+    return `<tr class="${rowCls}">
+      <td><strong style="color:var(--white);">${p.name}</strong></td>
+      <td>${p.thp}</td><td>${rankBadge(p.rank||'R3')}</td>
+      <td>${p.starts||0}</td><td>${p.subs||0}</td>
+      <td><strong style="color:${tm>=2?'var(--red)':'var(--silver)'}">${tm}</strong></td>
+      <td class="${dCls}">${delta>=0?'+':''}${delta}</td>
+      <td style="text-align:center;">${scoreBadge(score)}</td>
+      <td>${dots}</td><td>${action}</td>
+    </tr>`;
+  }).join('');
+}
+
+function recordWeek() {
+  const active=players.filter(p=>p.registered!=='Z');
+  const hasLineup=Object.keys(lastLineup).length>0;
+  const isStarter=r=>r==='Starter-A'||r==='Starter-B'||r==='Starter';
+  const isSub    =r=>r==='Sub-A'||r==='Sub-B'||r==='Sub';
+
+  const starters =active.filter(p=>isStarter(lastLineup[p.name]));
+  const subs     =active.filter(p=>isSub(lastLineup[p.name]));
+  const leftovers=active.filter(p=>lastLineup[p.name]==='Leftover');
+  const unknown  =active.filter(p=>!lastLineup[p.name]);
+
+  const roleRow=(p,autoSkip=false)=>{
+    const role=lastLineup[p.name];
+    const rl=role?`<span class="badge ${isStarter(role)?'b-green':isSub(role)?'b-silver':'b-purple'}" style="min-width:56px;text-align:center;">${isStarter(role)?'Starter':isSub(role)?'Sub':'Left Out'}</span>`
+                 :`<span class="badge b-silver" style="min-width:56px;text-align:center;">—</span>`;
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;padding:7px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);opacity:${autoSkip?'0.6':'1'};">
+      <span style="min-width:175px;font-weight:500;color:${autoSkip?'var(--silver3)':'var(--white)'};">${p.name}</span>
+      ${rl}
+      <span style="min-width:50px;">${scoreBadge(calcScore(p))}</span>
+      <select id="wk_${p.name.replace(/\W/g,'_')}" style="width:190px;font-size:12px;">
+        <option value="attended" ${!autoSkip?'selected':''}>✓ Attended</option>
+        <option value="miss">✗ No-show (penalised)</option>
+        <option value="excused">○ Excused (no penalty)</option>
+        <option value="skip" ${autoSkip?'selected':''}>— Not applicable</option>
+      </select>
+    </div>`;
+  };
+
+  let html='';
+  if (!hasLineup) {
+    html=`<div class="warn">No lineup generated yet. Generate teams first, then record attendance.</div>`;
+  } else {
+    if (starters.length)  html+=`<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;">Starters (${starters.length})</div>`+starters.map(p=>roleRow(p)).join('');
+    if (subs.length)      html+=`<div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;">Subs (${subs.length})</div>`+subs.map(p=>roleRow(p)).join('');
+    if (leftovers.length) html+=`<div style="font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;">Left Out (${leftovers.length})</div>`+leftovers.map(p=>roleRow(p)).join('');
+    if (unknown.length)   html+=`<div style="font-size:11px;font-weight:700;color:var(--silver3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;">Not in lineup — defaulted to Not Applicable</div>`+unknown.map(p=>roleRow(p,true)).join('');
+  }
+  document.getElementById('weekForm').innerHTML=html;
+  document.getElementById('weekSaveBtn').style.display=hasLineup?'':'none';
+  document.getElementById('weekModal').style.display='';
+}
+
+function saveWeek() {
+  const active=players.filter(p=>p.registered!=='Z');
+  const isStarter=r=>r==='Starter-A'||r==='Starter-B'||r==='Starter';
+  const isSub    =r=>r==='Sub-A'||r==='Sub-B'||r==='Sub';
+
+  active.forEach(p=>{
+    const sel=document.getElementById('wk_'+p.name.replace(/\W/g,'_'));
+    if(!sel) return;
+    const val=sel.value, role=lastLineup[p.name];
+    if(!p.history) p.history=[];
+    if (val==='skip')    { p.history.push('absent');  return; }
+    if (val==='excused') { p.history.push('excused'); return; }
+    if (val==='attended') {
+      if (isStarter(role))      { p.history.push('start'); p.starts=(p.starts||0)+1; if(p.flag==='guaranteed')p.flag=''; }
+      else if (isSub(role))     { p.history.push('sub');   p.subs=(p.subs||0)+1;     if(p.flag==='guaranteed')p.flag=''; }
+      else if (role==='Leftover'){ p.history.push('sub');  p.subs=(p.subs||0)+1; }
+      else                      { p.history.push('sub');   p.subs=(p.subs||0)+1; }
+    } else if (val==='miss') {
+      if (role&&role!=='Leftover') { p.history.push('miss'); p.misses=(p.misses||0)+1; }
+      else p.history.push('absent');
+    }
+  });
+
+  // Left-out registered players get +1 (leftout)
+  active.filter(p=>lastLineup[p.name]==='Leftover').forEach(p=>{
+    const sel=document.getElementById('wk_'+p.name.replace(/\W/g,'_'));
+    if(!sel||sel.value==='skip') {
+      if(!p.history) p.history=[];
+      const last=p.history[p.history.length-1];
+      if (last==='absent') p.history[p.history.length-1]='leftout';
+      else if (!sel) p.history.push('leftout');
+    }
+  });
+
+  lastLineup={};
+  document.getElementById('weekModal').style.display='none';
+  document.getElementById('lineupEditor').style.display='none';
+  save(); renderAttend(); renderScores(); toast('Attendance recorded!');
+}
+
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+const DEFAULT_ROSTER = [
+    {name:'Lexi10',thp:189,rank:'R5',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Bayside',thp:191,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'BEENZ',thp:298.8,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Bladerain',thp:212,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Devildog1978',thp:340.2,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Fort Cavazos',thp:191.8,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Magz',thp:240,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'MyNameIsJon',thp:252.3,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Navadronx',thp:183.5,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Slanter',thp:217.2,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Tusky',thp:190,rank:'R4',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'A Lost Papa',thp:207.4,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Admiral general SP3C',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Alone',thp:176,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Analog7',thp:217,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Anonymous',thp:189.4,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Aria Nika',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'BALLSDEEPBOBBY',thp:178,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'BaronVonSadist',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'BatRastard',thp:170.1,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'bossygoogz da tyrant',thp:262.6,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Brandon',thp:167,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'CICLOPE',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'CJ7777',thp:165.4,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Commander 239d6614',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Copezilla88',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'CplSlutphin',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'CptBdDecisions',thp:159,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'DAPBOSS',thp:213,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Demorrhoid',thp:240,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Dfit11',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'DirtyDova',thp:187,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'DoubleQuarter',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Ebo',thp:225.8,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'feetsNmeats',thp:161,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Gen Hannibal B',thp:156.2,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'General Pmac',thp:163,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'GXM 614',thp:277.3,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'HAK93',thp:207.6,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'hansaiman',thp:164,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Huckstress',thp:156.2,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Impatient Aperture',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'iwricecakes',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Judah888',thp:172.7,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'KamiSamaBora',thp:159.7,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Kevin123455',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Kevoval',thp:178,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Kilted Avenger',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Kong1EB7D614',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'laraine',thp:178,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Liquid Snake 00',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Lynch22',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Marcelpiu1',thp:156,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Marcus the great',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Mark Augustine',thp:158,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Maverick 85',thp:166,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'MDH2',thp:186.6,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'mfkn perd',thp:210,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Miss Korea papa',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Njeshi',thp:194.5,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'NovemberOscarPapa',thp:197.1,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Nutdragger',thp:193,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'OhjAH',thp:154.5,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'OverDose00',thp:161,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Particlebane',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'payroll mike',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Pompzaddy',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'pookie',thp:158,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'PROBB4U',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'ProPoints',thp:196.1,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Rampage BB',thp:181,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'raptor69',thp:205,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'RodimusPrime26',thp:181.5,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Roffer',thp:151,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'RompDaddy',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Sayomi',thp:219,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Serhan',thp:152,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Shark Fam',thp:198.7,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Swamprat1964',thp:196.8,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Tankzillah',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'tequilamcknbrd',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Tess Tickles978',thp:173,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'TfsJersey',thp:158.2,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'the MFKN BanaNanAna',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'THE MFKN RABBIT',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'tleachyy',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'TooBlurry',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Trooky',thp:214.3,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Turtle Duece',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Vanilla',thp:191,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'VidKid',thp:184,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Vitamin C',thp:160,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'VladL',thp:150,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'voodok',thp:183.8,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Wyattmfearp',thp:155,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Zeusdaddy',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'Elli 123456789',thp:188,rank:'R2',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'EM1LY',thp:150,rank:'R2',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'kitty1949',thp:301,rank:'R3',registered:'Y',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'LootGoblin',thp:181,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+    {name:'BalSz',thp:150,rank:'R3',registered:'N',flag:'',notes:'',starts:0,subs:0,misses:0,history:[]},
+];
+
+
+const loaded = load();
+if (!loaded || players.length === 0) {
+  players = DEFAULT_ROSTER.map(p => ({...p}));
+  save();
+}
+// Render all tabs on load so none are blank when first visited
+renderRoster();
+renderScores();
+renderAttend();
+</script>
+</body>
+</html>
