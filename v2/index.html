@@ -1,65 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SSYN Command Center</title>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSYN Command Center</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <p class="eyebrow">SSYN</p>
+      <h1>Command Center</h1>
+      <p class="subtitle">Mission-ready operations dashboard</p>
+    </header>
 
-  <style>
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:#111827;
-      color:white;
-    }
+    <nav class="tab-nav" aria-label="Primary">
+      <a class="tab is-active" href="#home-panel" data-view="home">Home</a>
+      <a class="tab" href="#roster-panel" data-view="roster">Roster</a>
+      <a class="tab" href="#operations-panel" data-view="operations">Operations</a>
+      <a class="tab" href="#reports-panel" data-view="reports">Reports</a>
+      <a class="tab" href="#settings-panel" data-view="settings">Settings</a>
+    </nav>
 
-    header{
-      background:#1f2937;
-      padding:20px;
-      text-align:center;
-      font-size:26px;
-      font-weight:bold;
-    }
+    <main class="page-shell">
+      <section class="panel is-active" id="home-panel" data-panel="home" aria-labelledby="home-title">
+        <div class="dashboard">
+          <div class="dashboard-header">
+            <div>
+              <p class="section-label">Live overview</p>
+              <h2 id="home-title">SSYN Command Center</h2>
+            </div>
+            <span class="status-pill">Online</span>
+          </div>
 
-    .card{
-      margin:20px;
-      padding:20px;
-      background:#1e293b;
-      border-radius:15px;
-    }
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span class="stat-label">Total Players</span>
+              <strong class="stat-value">24</strong>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Desert Storm Signups</span>
+              <strong class="stat-value">12</strong>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Canyon Storm Signups</span>
+              <strong class="stat-value">9</strong>
+            </article>
+            <article class="stat-card">
+              <span class="stat-label">Guaranteed Next Round</span>
+              <strong class="stat-value">8</strong>
+            </article>
+          </div>
 
-    .button{
-      display:block;
-      width:100%;
-      margin-top:12px;
-      padding:15px;
-      border:none;
-      border-radius:10px;
-      background:#2563eb;
-      color:white;
-      font-size:18px;
-    }
-  </style>
-</head>
+          <div class="actions-grid">
+            <button class="action-btn" type="button">👥 Manage Roster</button>
+            <button class="action-btn" type="button">⚔️ Build Desert Storm Teams</button>
+            <button class="action-btn" type="button">🌪️ Build Canyon Storm Teams</button>
+            <button class="action-btn" type="button">📊 Reports</button>
+          </div>
+        </div>
+      </section>
 
-<body>
+      <section class="panel" id="roster-panel" data-panel="roster" aria-labelledby="roster-title">
+        <h2 id="roster-title">Roster</h2>
+        <p>Team members and availability will be listed here.</p>
+      </section>
 
-<header>
-SSYN Command Center
-</header>
+      <section class="panel" id="operations-panel" data-panel="operations" aria-labelledby="operations-title">
+        <h2 id="operations-title">Operations</h2>
+        <p>Current missions and action items will be tracked here.</p>
+      </section>
 
-<div class="card">
-<h2>Welcome!</h2>
+      <section class="panel" id="reports-panel" data-panel="reports" aria-labelledby="reports-title">
+        <h2 id="reports-title">Reports</h2>
+        <p>Performance summaries and incident reports will be displayed here.</p>
+      </section>
 
-<p>Version 2 is officially under construction.</p>
-
-<button class="button">👥 Players</button>
-<button class="button">⚔ Desert Storm</button>
-<button class="button">🌪 Canyon Storm</button>
-<button class="button">🏰 Strongholds</button>
-<button class="button">🌍 Warzone Duel</button>
-
-</div>
-
-</body>
+      <section class="panel" id="settings-panel" data-panel="settings" aria-labelledby="settings-title">
+        <h2 id="settings-title">Settings</h2>
+        <p>Preferences and system controls will be managed here.</p>
+      </section>
+    </main>
+  </body>
 </html>
